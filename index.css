@@ -1,0 +1,17 @@
+html,
+*,
+body {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+canvas {
+  background-color: white;
+}
+body {
+  background: black;
+  display: flex;
+  align-self: center;
+  padding: 40px;
+  justify-content: center;
+}
