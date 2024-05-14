@@ -1,3 +1,34 @@
+const canvas = document.getElementById("game");
+const context = canvas.getContext("2d");
+const radius = 60;
+const width = canvas.width;
+const height = canvas.height;
+
+let snakeBody = [{ x: 260, y: 200 }];
+
+let rectangleDimention = {
+  width: 20,
+  height: 20,
+};
+
+let speed = {
+  dx: 0,
+  dy: 0,
+};
+
+const position = {
+  x: width / 2,
+  y: height / 2,
+};
+
+function createRectangle(x, y, color) {
+  context.beginPath();
+  context.rect(x, y, rectangleDimention.width, rectangleDimention.height);
+  context.fillStyle = color || "red";
+  context.fill();
+  context.stroke();
+}
+
 class Food {
   constructor() {
     this.foodX;
@@ -16,11 +47,8 @@ class Food {
     createRectangle(this.foodX, this.foodY, "gren");
   }
 
-  isEatenFood() {
-    const headPosition = snakeBody[0];
-
-    if (this.foodX === headPosition.x && this.foodY === headPosition.y)
-      return true;
+  isEatenFood(x, y) {
+    if (this.foodX === x && this.foodY === y) return true;
 
     return false;
   }
@@ -62,57 +90,52 @@ class SnakeGame {
 
   endGame() {
     this.isGameOver = true;
-    thi.isStart = false;
   }
 
   grow() {
-    // increment the score ;
-    this.score++;
+    const isEatenFood = food.isEatenFood(snakeBody[0].x, snakeBody[0].y);
 
-    // create new part of snake
-    let newPart = {
-      x: snakeBody[snakeBody.length - 1] + 20,
-      y: snakeBody[snakeBody.length - 1].y + 20,
-    };
-    // add part to snake
-    snakeBody.push(newPart);
+    if (!isEatenFood) return;
 
-    // genearate a new food
-    food.generateFood();
+    const head = snakeBody;
+    const newPart = { x: snakeBody[0] };
   }
 
-  move() {
+  step() {
     let snakePart;
 
-    // clear the canvas
     context.clearRect(0, 0, width, height);
 
-    // draw the snake
     for (let i = 0; i < snakeBody.length; i++) {
       snakePart = snakeBody[i];
       createRectangle(snakePart.x, snakePart.y, "red");
     }
 
-    if (food.isEatenFood()) this.grow();
+    const isEatenFood = food.isEatenFood(snakeBody[0].x, snakeBody[0].y);
 
-    // move the head
+    if (isEatenFood) {
+      let size = snakeBody.length;
+
+      food.generateFood();
+      let newPart = {
+        x: snakeBody[size - 1] + 20,
+        y: snakeBody[size - 1].y + 20,
+      };
+      snakeBody.push(newPart);
+    }
+
     snakeBody.unshift({
       x: snakeBody[0].x + speed.dx,
       y: snakeBody[0].y + speed.dy,
     });
-
-    // remove the tail of snake
     snakeBody.pop();
-
-    // create head of snake
     createRectangle(snakeBody[0].x, snakeBody[0].y, "yellow");
 
     // create food
     createRectangle(food.foodX, food.foodY, "orange");
   }
 
-  direct() {
-    // listen
+  move() {
     document.addEventListener("keydown", (event) => {
       const pressedKey = event.key;
       if (
@@ -124,16 +147,16 @@ class SnakeGame {
         this.isStart = true;
 
       switch (pressedKey) {
-        case "k": // move up
+        case "k":
           SnakeController.up();
           break;
-        case "j": //move down
+        case "j":
           SnakeController.down();
           break;
-        case "l": // move right
+        case "l":
           SnakeController.right();
           break;
-        case "h": // move left
+        case "h":
           SnakeController.left();
           break;
       }
@@ -141,41 +164,11 @@ class SnakeGame {
   }
 }
 
-const canvas = document.getElementById("game");
-const context = canvas.getContext("2d");
-
-const width = canvas.width; // canvas width
-const height = canvas.height; // canvas height
-
-// snake body
-let snakeBody = [{ x: 0, y: 0 }];
-
-// snake part dimension
-let rectangleDimention = {
-  width: 20,
-  height: 20,
-};
-
-// speed
-let speed = {
-  dx: 0,
-  dy: 0,
-};
-
-// draw the part of snake
-function createRectangle(x, y, color) {
-  context.beginPath();
-  context.rect(x, y, rectangleDimention.width, rectangleDimention.height);
-  context.fillStyle = color || "red";
-  context.fill();
-  context.stroke();
-}
-
 const snakeGame = new SnakeGame();
 const food = new Food();
 
 food.generateFood();
 setInterval(() => {
-  snakeGame.move();
+  snakeGame.step();
 }, 50);
-snakeGame.direct();
+snakeGame.move();
